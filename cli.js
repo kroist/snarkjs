@@ -249,9 +249,21 @@ const commands = [
     },
     {
         cmd: "zkey export soliditycalldata [public.json] [proof.json]",
-        description: "Generates call parameters ready to be called.",
+        description: "Generates call parameters ready to be called for Solidity.",
         alias: ["zkesc", "generatecall -pub|public -p|proof"],
         action: zkeyExportSolidityCalldata
+    },
+    {
+        cmd: "zkey export funcverifier [circuit_final.zkey] [verifier.func]",
+        description: "Creates a verifier in Func",
+        alias: ["zkefv"],
+        action: zkeyExportFuncVerifier
+    },
+    {
+        cmd: "zkey export funccalldata [public.json] [proof.json]",
+        description: "Generates call parameters ready to be called for Func.",
+        alias: ["zkefc"],
+        action: zkeyExportFuncCalldata
     },
     {
         cmd: "groth16 setup [circuit.r1cs] [powersoftau.ptau] [circuit_0000.zkey]",
@@ -688,6 +700,89 @@ async function zkeyExportSolidityCalldata(params, options) {
 
     return 0;
 }
+
+
+// solidity genverifier [circuit_final.zkey] [verifier.sol]
+async function zkeyExportFuncVerifier(params, options) {
+
+    let zkeyName;
+    let verifierName;
+
+    if (params.length < 1) {
+        zkeyName = "circuit_final.zkey";
+    } else {
+        zkeyName = params[0];
+    }
+
+    if (params.length < 2) {
+        verifierName = "verifier.func";
+    } else {
+        verifierName = params[1];
+    }
+
+    if (options.verbose) Logger.setLogLevel("DEBUG");
+    throw new Error("Not implemented yet!");
+
+    const templates = {};
+
+    if (await fileExists(path.join(__dirname, "templates"))) {
+        templates.groth16 = await fs.promises.readFile(path.join(__dirname, "templates", "verifier_groth16.sol.ejs"), "utf8");
+        templates.plonk = await fs.promises.readFile(path.join(__dirname, "templates", "verifier_plonk.sol.ejs"), "utf8");
+        templates.fflonk = await fs.promises.readFile(path.join(__dirname, "templates", "verifier_fflonk.sol.ejs"), "utf8");
+    } else {
+        templates.groth16 = await fs.promises.readFile(path.join(__dirname, "..", "templates", "verifier_groth16.sol.ejs"), "utf8");
+        templates.plonk = await fs.promises.readFile(path.join(__dirname, "..", "templates", "verifier_plonk.sol.ejs"), "utf8");
+        templates.fflonk = await fs.promises.readFile(path.join(__dirname, "..", "templates", "verifier_fflonk.sol.ejs"), "utf8");
+    }
+
+    const verifierCode = await zkey.exportSolidityVerifier(zkeyName, templates, logger);
+
+    fs.writeFileSync(verifierName, verifierCode, "utf-8");
+
+    return 0;
+}
+
+
+
+// solidity gencall <public.json> <proof.json>
+async function zkeyExportFuncCalldata(params, options) {
+    let publicName;
+    let proofName;
+
+    if (params.length < 1) {
+        publicName = "public.json";
+    } else {
+        publicName = params[0];
+    }
+
+    if (params.length < 2) {
+        proofName = "proof.json";
+    } else {
+        proofName = params[1];
+    }
+
+    if (options.verbose) Logger.setLogLevel("DEBUG");
+
+    const pub = JSON.parse(fs.readFileSync(publicName, "utf8"));
+    const proof = JSON.parse(fs.readFileSync(proofName, "utf8"));
+
+    throw new Error("Not implemented yet!");
+
+    let res;
+    if (proof.protocol == "groth16") {
+        res = await groth16.exportSolidityCallData(proof, pub);
+    } else if (proof.protocol == "plonk") {
+        res = await plonk.exportSolidityCallData(proof, pub);
+    } else if (proof.protocol === "fflonk") {
+        res = await fflonk.exportSolidityCallData(pub, proof);
+    } else {
+        throw new Error("Invalid Protocol");
+    }
+    console.log(res);
+
+    return 0;
+}
+
 
 // powersoftau new <curve> <power> [powersoftau_0000.ptau]",
 async function powersOfTauNew(params, options) {
