@@ -57,11 +57,11 @@ jobs:
         run: npm ci
 
       - name: Install hardhat dependencies
-        working-directory: smart_contract_tests
+        working-directory: ethereum_contract_tests
         run: npm ci
 
       - name: Run hardhat tests
-        working-directory: smart_contract_tests
+        working-directory: ethereum_contract_tests
         run: npm test
 
   testv12:

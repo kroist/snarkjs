@@ -1245,10 +1245,10 @@ async function joinABC(curve, zkey, a, b, c, logger) {
     You should have received a copy of the GNU General Public License
     along with snarkJS. If not, see <https://www.gnu.org/licenses/>.
 */
-const { unstringifyBigInts: unstringifyBigInts$b} = ffjavascript.utils;
+const { unstringifyBigInts: unstringifyBigInts$c} = ffjavascript.utils;
 
 async function wtnsCalculate(_input, wasmFileName, wtnsFileName, options) {
-    const input = unstringifyBigInts$b(_input);
+    const input = unstringifyBigInts$c(_input);
 
     const fdWasm = await fastFile__namespace.readExisting(wasmFileName);
     const wasm = await fdWasm.read(fdWasm.totalSize);
@@ -1290,10 +1290,10 @@ async function wtnsCalculate(_input, wasmFileName, wtnsFileName, options) {
     You should have received a copy of the GNU General Public License
     along with snarkJS. If not, see <https://www.gnu.org/licenses/>.
 */
-const {unstringifyBigInts: unstringifyBigInts$a} = ffjavascript.utils;
+const {unstringifyBigInts: unstringifyBigInts$b} = ffjavascript.utils;
 
 async function groth16FullProve(_input, wasmFile, zkeyFileName, logger) {
-    const input = unstringifyBigInts$a(_input);
+    const input = unstringifyBigInts$b(_input);
 
     const wtns= {
         type: "mem"
@@ -1320,7 +1320,7 @@ async function groth16FullProve(_input, wasmFile, zkeyFileName, logger) {
     You should have received a copy of the GNU General Public License along with
     snarkjs. If not, see <https://www.gnu.org/licenses/>.
 */
-const {unstringifyBigInts: unstringifyBigInts$9} = ffjavascript.utils;
+const {unstringifyBigInts: unstringifyBigInts$a} = ffjavascript.utils;
 
 async function groth16Verify(_vk_verifier, _publicSignals, _proof, logger) {
 /*
@@ -1330,9 +1330,9 @@ async function groth16Verify(_vk_verifier, _publicSignals, _proof, logger) {
     }
 */
 
-    const vk_verifier = unstringifyBigInts$9(_vk_verifier);
-    const proof = unstringifyBigInts$9(_proof);
-    const publicSignals = unstringifyBigInts$9(_publicSignals);
+    const vk_verifier = unstringifyBigInts$a(_vk_verifier);
+    const proof = unstringifyBigInts$a(_proof);
+    const publicSignals = unstringifyBigInts$a(_publicSignals);
 
     const curve = await getCurveFromName(vk_verifier.curve);
 
@@ -1421,7 +1421,7 @@ function publicInputsAreValid$1(curve, publicInputs) {
     You should have received a copy of the GNU General Public License
     along with snarkJS. If not, see <https://www.gnu.org/licenses/>.
 */
-const { unstringifyBigInts: unstringifyBigInts$8} = ffjavascript.utils;
+const { unstringifyBigInts: unstringifyBigInts$9} = ffjavascript.utils;
 
 function p256$2(n) {
     let nstr = n.toString(16);
@@ -1431,8 +1431,8 @@ function p256$2(n) {
 }
 
 async function groth16ExportSolidityCallData(_proof, _pub) {
-    const proof = unstringifyBigInts$8(_proof);
-    const pub = unstringifyBigInts$8(_pub);
+    const proof = unstringifyBigInts$9(_proof);
+    const pub = unstringifyBigInts$9(_pub);
 
     let inputs = "";
     for (let i=0; i<pub.length; i++) {
@@ -3999,12 +3999,12 @@ async function loadSymbols(symFileName) {
     You should have received a copy of the GNU General Public License
     along with snarkJS. If not, see <https://www.gnu.org/licenses/>.
 */
-const {unstringifyBigInts: unstringifyBigInts$7} = ffjavascript.utils;
+const {unstringifyBigInts: unstringifyBigInts$8} = ffjavascript.utils;
 
 
 async function wtnsDebug(_input, wasmFileName, wtnsFileName, symName, options, logger) {
 
-    const input = unstringifyBigInts$7(_input);
+    const input = unstringifyBigInts$8(_input);
 
     const fdWasm = await fastFile__namespace.readExisting(wasmFileName);
     const wasm = await fdWasm.read(fdWasm.totalSize);
@@ -6279,7 +6279,7 @@ async function exportFFlonkVk(zkey, logger) {
     along with snarkJS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-const {unstringifyBigInts: unstringifyBigInts$6, stringifyBigInts: stringifyBigInts$2} = ffjavascript.utils;
+const {unstringifyBigInts: unstringifyBigInts$7, stringifyBigInts: stringifyBigInts$2} = ffjavascript.utils;
 
 async function fflonkExportSolidityVerifier(vk, templates, logger) {
     if (logger) logger.info("FFLONK EXPORT SOLIDITY VERIFIER STARTED");
@@ -6309,7 +6309,7 @@ async function fflonkExportSolidityVerifier(vk, templates, logger) {
     return ejs__default["default"].render(template, vk);
 
     function fromVkey(str) {
-        const val = unstringifyBigInts$6(str);
+        const val = unstringifyBigInts$7(str);
         return curve.Fr.fromObject(val);
     }
 
@@ -6333,6 +6333,72 @@ async function exportSolidityVerifier(zKeyName, templates, logger) {
     let template = templates[verificationKey.protocol];
 
     return ejs__default["default"].render(template, verificationKey);
+}
+
+const {unstringifyBigInts: unstringifyBigInts$6} = ffjavascript.utils;
+
+async function exportFuncVerifier(zKeyName, templates, logger) {
+
+    const verificationKey = await zkeyExportVerificationKey(zKeyName, logger);
+
+    if ("fflonk" === verificationKey.protocol || "plonk" === verificationKey.protocol) {
+        throw new Error("Not Supported Yet!");
+    }
+
+    let template = templates[verificationKey.protocol];
+    let reformatedVk = await reformatVerificationKeyGroth16(verificationKey);
+
+    return ejs__default["default"].render(template, reformatedVk);
+}
+
+
+async function reformatVerificationKeyGroth16(verificationKey) {
+
+
+    const curve = await getCurveFromName(verificationKey.curve);
+    const vk_verifier = unstringifyBigInts$6(verificationKey);
+
+    verificationKey.vk_alpha_1 = g1Compressed(curve, vk_verifier.vk_alpha_1);
+    verificationKey.vk_beta_2 = g2Compressed(curve, vk_verifier.vk_beta_2);
+    verificationKey.vk_gamma_2 = g2Compressed(curve, vk_verifier.vk_gamma_2);
+    verificationKey.vk_delta_2 = g2Compressed(curve, vk_verifier.vk_delta_2);
+    let arr = vk_verifier.IC.map(x => g1Compressed(curve, x));
+    verificationKey.IC = arr;
+    return verificationKey;
+
+}
+
+
+function g1Compressed(curve, p1Raw) {
+    let p1 = curve.G1.fromObject(p1Raw);
+
+    let buff = new Uint8Array(48);
+    curve.G1.toRprCompressed(buff, 0, p1);
+    // convert from ffjavascript to blst format
+    if (buff[0] & 0x80) {
+        buff[0] |= 32;
+    }
+    buff[0] |= 0x80;
+    return toHexString(buff);
+}
+
+function g2Compressed(curve, p2Raw) {
+    let p2 = curve.G2.fromObject(p2Raw);
+
+    let buff = new Uint8Array(96);
+    curve.G2.toRprCompressed(buff, 0, p2);
+    // convert from ffjavascript to blst format
+    if (buff[0] & 0x80) {
+        buff[0] |= 32;
+    }
+    buff[0] |= 0x80;
+    return toHexString(buff);
+}
+
+function toHexString(byteArray) {
+    return Array.from(byteArray, function(byte) {
+        return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join("");
 }
 
 /*
@@ -6366,7 +6432,8 @@ var zkey = /*#__PURE__*/Object.freeze({
     exportJson: zkeyExportJson,
     bellmanContribute: bellmanContribute,
     exportVerificationKey: zkeyExportVerificationKey,
-    exportSolidityVerifier: exportSolidityVerifier
+    exportSolidityVerifier: exportSolidityVerifier,
+    exportFuncVerifier: exportFuncVerifier
 });
 
 /*

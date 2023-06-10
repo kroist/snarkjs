@@ -5600,7 +5600,6 @@ async function exportFuncVerifier(zKeyName, templates, logger) {
 
     let template = templates[verificationKey.protocol];
     let reformatedVk = await reformatVerificationKeyGroth16(verificationKey);
-    console.log(reformatedVk);
 
     return ejs__default["default"].render(template, reformatedVk);
 }
