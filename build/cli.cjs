@@ -5532,7 +5532,7 @@ async function exportFFlonkVk(zkey, logger) {
     along with snarkJS. If not, see <https://www.gnu.org/licenses/>.
 */
 
-const {unstringifyBigInts: unstringifyBigInts$b, stringifyBigInts: stringifyBigInts$4} = ffjavascript.utils;
+const {unstringifyBigInts: unstringifyBigInts$c, stringifyBigInts: stringifyBigInts$4} = ffjavascript.utils;
 
 async function fflonkExportSolidityVerifier(vk, templates, logger) {
     if (logger) logger.info("FFLONK EXPORT SOLIDITY VERIFIER STARTED");
@@ -5562,7 +5562,7 @@ async function fflonkExportSolidityVerifier(vk, templates, logger) {
     return ejs__default["default"].render(template, vk);
 
     function fromVkey(str) {
-        const val = unstringifyBigInts$b(str);
+        const val = unstringifyBigInts$c(str);
         return curve.Fr.fromObject(val);
     }
 
@@ -5586,6 +5586,73 @@ async function exportSolidityVerifier(zKeyName, templates, logger) {
     let template = templates[verificationKey.protocol];
 
     return ejs__default["default"].render(template, verificationKey);
+}
+
+const {unstringifyBigInts: unstringifyBigInts$b} = ffjavascript.utils;
+
+async function exportFuncVerifier(zKeyName, templates, logger) {
+
+    const verificationKey = await zkeyExportVerificationKey(zKeyName, logger);
+
+    if ("fflonk" === verificationKey.protocol || "plonk" === verificationKey.protocol) {
+        throw new Error("Not Supported Yet!");
+    }
+
+    let template = templates[verificationKey.protocol];
+    let reformatedVk = await reformatVerificationKeyGroth16(verificationKey);
+    console.log(reformatedVk);
+
+    return ejs__default["default"].render(template, reformatedVk);
+}
+
+
+async function reformatVerificationKeyGroth16(verificationKey) {
+
+
+    const curve = await getCurveFromName(verificationKey.curve);
+    const vk_verifier = unstringifyBigInts$b(verificationKey);
+
+    verificationKey.vk_alpha_1 = g1Compressed(curve, vk_verifier.vk_alpha_1);
+    verificationKey.vk_beta_2 = g2Compressed(curve, vk_verifier.vk_beta_2);
+    verificationKey.vk_gamma_2 = g2Compressed(curve, vk_verifier.vk_gamma_2);
+    verificationKey.vk_delta_2 = g2Compressed(curve, vk_verifier.vk_delta_2);
+    let arr = vk_verifier.IC.map(x => g1Compressed(curve, x));
+    verificationKey.IC = arr;
+    return verificationKey;
+
+}
+
+
+function g1Compressed(curve, p1Raw) {
+    let p1 = curve.G1.fromObject(p1Raw);
+
+    let buff = new Uint8Array(48);
+    curve.G1.toRprCompressed(buff, 0, p1);
+    // convert from ffjavascript to blst format
+    if (buff[0] & 0x80) {
+        buff[0] |= 32;
+    }
+    buff[0] |= 0x80;
+    return toHexString(buff);
+}
+
+function g2Compressed(curve, p2Raw) {
+    let p2 = curve.G2.fromObject(p2Raw);
+
+    let buff = new Uint8Array(96);
+    curve.G2.toRprCompressed(buff, 0, p2);
+    // convert from ffjavascript to blst format
+    if (buff[0] & 0x80) {
+        buff[0] |= 32;
+    }
+    buff[0] |= 0x80;
+    return toHexString(buff);
+}
+
+function toHexString(byteArray) {
+    return Array.from(byteArray, function(byte) {
+        return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join("");
 }
 
 /*
@@ -13147,16 +13214,36 @@ async function zkeyExportSolidityCalldata(params, options) {
 // solidity genverifier [circuit_final.zkey] [verifier.sol]
 async function zkeyExportFuncVerifier(params, options) {
 
-    if (params.length < 1) ; else {
-        params[0];
+    let zkeyName;
+    let verifierName;
+
+    if (params.length < 1) {
+        zkeyName = "circuit_final.zkey";
+    } else {
+        zkeyName = params[0];
     }
 
-    if (params.length < 2) ; else {
-        params[1];
+    if (params.length < 2) {
+        verifierName = "verifier.func";
+    } else {
+        verifierName = params[1];
     }
 
     if (options.verbose) Logger__default["default"].setLogLevel("DEBUG");
-    throw new Error("Not implemented yet!");
+
+    const templates = {};
+
+    if (await fileExists(path__default["default"].join(__dirname$1, "templates"))) {
+        templates.groth16 = await fs__default["default"].promises.readFile(path__default["default"].join(__dirname$1, "templates", "verifier_groth16.func.ejs"), "utf8");
+    } else {
+        templates.groth16 = await fs__default["default"].promises.readFile(path__default["default"].join(__dirname$1, "..", "templates", "verifier_groth16.func.ejs"), "utf8");
+    }
+
+    const verifierCode = await exportFuncVerifier(zkeyName, templates, logger);
+
+    fs__default["default"].writeFileSync(verifierName, verifierCode, "utf-8");
+
+    return 0;
 }
 
 
