@@ -13,8 +13,6 @@ const slice vk_delta_2 = "<%= vk_delta_2    %>"s;
 const slice vk_alpha_1 = "<%= vk_alpha_1    %>"s;
 const slice vk_beta_2 = "<%= vk_beta_2    %>"s;
 
-int bls_verify(slice pk, slice msg, slice sgn) asm "BLS_VERIFY";
-slice bls_g1_mul(slice x, int s) asm "BLS_G1_MUL";
 slice bls_g1_add(slice x, slice y) asm "BLS_G1_ADD";
 slice bls_g1_neg(slice x) asm "BLS_G1_NEG";
 slice bls_g1_multiexp(
