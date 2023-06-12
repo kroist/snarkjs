@@ -68,16 +68,14 @@ global int ctx_res;
     return (s, x);
 }
 
-() groth16Verify(slice in_msg_body) impure {
-
-    slice pi_a = in_msg_body~load_p1();
-    slice pi_b = in_msg_body~load_p2();
-    slice pi_c = in_msg_body~load_p1();
-
-
+() groth16Verify(
+    slice pi_a,
+    slice pi_b,
+    slice pi_c,
     <% for (let i = 1; i <= nPublic; i++) { %>
-    int pubInput<%=i-1%> = in_msg_body~load_newint();
+    int pubInput<%=i-1%> <%= i == nPublic ? "" : "," %>
     <% } %>
+) impure {
 
     slice cpub = bls_g1_multiexp(
         <% for (let i = 1; i <= nPublic; i++) { %>
@@ -121,7 +119,24 @@ global int ctx_res;
 
     
     if (op == op::verify) {
-        groth16Verify(in_msg_body);
+
+        slice pi_a = in_msg_body~load_p1();
+        slice pi_b = in_msg_body~load_p2();
+        slice pi_c = in_msg_body~load_p1();
+
+
+        <% for (let i = 1; i <= nPublic; i++) { %>
+        int pubInput<%=i-1%> = in_msg_body~load_newint();
+        <% } %>
+
+        groth16Verify(
+            pi_a,
+            pi_b,
+            pi_c,
+            <% for (let i = 1; i <= nPublic; i++) { %>
+            pubInput<%=i-1%> <%= i == nPublic ? "" : "," %>
+            <% } %>
+        );
         return ();
     }
 

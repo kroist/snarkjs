@@ -35,7 +35,7 @@ describe('BlsTest', () => {
 
     
     async function groth16Verify(r1csFilename, wtnsFilename) {
-        const funcVerifierFilename = path.join("contracts", "bls_test.fc");
+        const funcVerifierFilename = path.join("contracts", "verifier.fc");
 
         const zkeyFilename = { type: "mem" };
 
