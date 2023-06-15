@@ -493,6 +493,13 @@ snarkjs zkey export solidityverifier circuit_final.zkey verifier.sol
 
 Finally, we export the verifier as a Solidity smart-contract so that we can publish it on-chain -- using [remix](https://remix.ethereum.org/) for example. For the details on how to do this, refer to section 4 of [this tutorial](https://blog.iden3.io/first-zk-proof.html).
 
+
+or if you want to export in Func for Ton TVM:
+
+```sh
+snarkjs zkey export funcverifier circuit_final.zkey verifier.sol
+```
+
 ### 26. Simulate a verification call
 ```sh
 snarkjs zkey export soliditycalldata public.json proof.json
